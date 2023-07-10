@@ -1,13 +1,14 @@
 import { authData } from "./types";
 import playerService from "./player-service";
+import { CLIENTS } from "../db";
 
 class PlayerController {
 
-    async auth(ws, payload: authData, wsClientsMap) {
+    async auth(ws, payload: authData) {
 
         const newlyPlayer = await playerService.auth(payload);
 
-        wsClientsMap.set(ws, newlyPlayer.index);
+        CLIENTS.set(ws, newlyPlayer.index);
 
         const response = {
             type: "reg",

@@ -12,7 +12,6 @@ class PlayerService {
             const newPlayer = { index: Players.length + 1, ...authData };
             Players.push(newPlayer);
             const { name, index } = newPlayer;
-            console.log(Players);
             return {
                 name,
                 index,
