@@ -29,7 +29,13 @@ export const router = async (request, ws) => {
         await gameController.create(wss)
         break;
     case 'add_ships':
-        await gameController.addShips(wss, ws, payload)
+        await gameController.addShips(wss, payload);
+        break;
+    case 'attack':
+        await gameController.attack(wss, ws, payload)
+        break;
+    case 'randomAttack':
+        await gameController.randomAttack(wss, ws, payload)
         break;
     }
 }

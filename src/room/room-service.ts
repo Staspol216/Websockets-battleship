@@ -1,5 +1,6 @@
 import { Player } from "../db/types";
 import { Players, Rooms } from "../db";
+import { randomUUID } from "crypto";
 
 
 class RoomService {
@@ -13,7 +14,7 @@ class RoomService {
         const { password, ...playerDataWithoutPassword } = PlayerCreatorData;
 
         const newRoom = {
-            roomId: Rooms.length + 1,
+            roomId: randomUUID(),
             roomUsers: [ playerDataWithoutPassword ]
         };
 
@@ -21,10 +22,9 @@ class RoomService {
         console.log(Rooms);
     }
 
-    addPlayer(indexRoom: number, player: Player) {
+    addPlayer(indexRoom: string, player: Player) {
         const room = this.getById(indexRoom);
         if (!room) return
-        console.log(player, "player wich we add")
 
         room.roomUsers.push(player)
         
@@ -33,12 +33,12 @@ class RoomService {
         }
     }
 
-    removeById(id: number) {
+    removeById(id: string) {
         const roomIndex = Rooms.findIndex(room => room.roomId === id)
         return Rooms.splice(roomIndex, 1)
     }
 
-    getById(id: number) {
+    getById(id: string) {
         return Rooms.find(room => room.roomId === id)
     }
 

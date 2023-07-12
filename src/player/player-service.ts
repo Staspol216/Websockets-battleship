@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { Players } from "../db";
 import { authData } from "./types";
 
@@ -9,7 +10,7 @@ class PlayerService {
         const playerIndex = Players.findIndex((player) => player.name === authData.name);
 
         if (playerIndex === -1) {
-            const newPlayer = { index: Players.length + 1, ...authData };
+            const newPlayer = { index: randomUUID() , ...authData };
             Players.push(newPlayer);
             const { name, index } = newPlayer;
             return {
@@ -39,7 +40,7 @@ class PlayerService {
         }
     }
 
-    getPlayerById(playerId: number) {
+    getPlayerById(playerId: string) {
         return Players.find(player => player.index === playerId);
     }
 
