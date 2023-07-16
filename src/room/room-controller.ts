@@ -33,6 +33,7 @@ class RoomController {
             data: JSON.stringify(rooms),
             id: 0
         };
+        console.log(response.type, rooms);
         const encodedResponse = JSON.stringify(response);
 
         wss.clients.forEach((client) => {

@@ -21,14 +21,18 @@ class GameController {
             if (!idPlayer) return
             if (!roomPlayersIds.includes(idPlayer)) return
 
+            const data = {
+                idGame: game.idGame,
+                idPlayer
+            }
+
             const response = {
                 type: "create_game",
-                data: JSON.stringify({
-                    idGame: game.idGame,
-                    idPlayer
-                }),
+                data: JSON.stringify(data),
                 id: 0
             };
+
+            console.log(response.type, data)
         
             const encodedResponse = JSON.stringify(response);
             if (client.readyState === WebSocket.OPEN) {
@@ -56,14 +60,18 @@ class GameController {
             if (!playerId) return
             if (!gamePlayersIds.includes(playerId)) return
 
+            const data = {
+                ships: DB.USERS_GAME_SHIPS.get(playerId),
+                currentPlayerIndex: playerId
+            }
+
             const response = {
                 type: "start_game",
-                data: JSON.stringify({
-                    ships: DB.USERS_GAME_SHIPS.get(playerId),
-                    currentPlayerIndex: playerId
-                }),
+                data: JSON.stringify(data),
                 id: 0
             }
+
+            console.log(response.type, data)
 
             const encodedResponse = JSON.stringify(response);
 
@@ -157,6 +165,9 @@ class GameController {
                 data: JSON.stringify(data),
                 id: 0
             };
+
+            console.log(type, data)
+
             const encodedResponse = JSON.stringify(response);
 
             if (client.readyState === WebSocket.OPEN) {

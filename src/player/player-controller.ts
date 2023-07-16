@@ -16,6 +16,8 @@ class PlayerController {
             data: JSON.stringify(newlyPlayer),
             id: 0
         };
+
+        console.log(response.type, newlyPlayer)
         
         const encodedResponse = JSON.stringify(response);
         ws.send(encodedResponse);
@@ -29,6 +31,9 @@ class PlayerController {
                 data: JSON.stringify(DB.winners),
                 id: 0
             };
+
+            console.log(response.type, DB.winners)
+
             const encodedResponse = JSON.stringify(response);
 
             if (client.readyState === WebSocket.OPEN) {
