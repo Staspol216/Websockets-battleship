@@ -68,32 +68,35 @@ class GameController {
     public addShips(payload) {
         const currentGame = gameService.addShips(payload);
 
-        const gamePlayersIds = currentGame.players.map(player => player.id);
         if (currentGame.players.length === 2) {
-
-            wss.clients.forEach((client) => {
-                const playerId = CLIENTS.get(client);
-
-                if (!gamePlayersIds.includes(playerId)) return
-
-                const response = {
-                    type: "start_game",
-                    data: JSON.stringify({
-                        ships: USERS_GAME_SHIPS.get(playerId),
-                        currentPlayerIndex: playerId
-                    }),
-                    id: 0
-                }
-
-                const encodedResponse = JSON.stringify(response);
-
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(encodedResponse);
-                }
-            });
-
+            this.startGame(currentGame);
             this.setTurn(currentGame.players[0].id, currentGame);
         }
+    }
+
+    public startGame(game: Game) {
+        const gamePlayersIds = game.players.map(player => player.id);
+
+        wss.clients.forEach((client) => {
+            const playerId = CLIENTS.get(client);
+
+            if (!gamePlayersIds.includes(playerId)) return
+
+            const response = {
+                type: "start_game",
+                data: JSON.stringify({
+                    ships: USERS_GAME_SHIPS.get(playerId),
+                    currentPlayerIndex: playerId
+                }),
+                id: 0
+            }
+
+            const encodedResponse = JSON.stringify(response);
+
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(encodedResponse);
+            }
+        });
     }
 
     public setTurn(currentPlayerId: string, currentGame: Game) {
@@ -157,7 +160,7 @@ class GameController {
         this._broadcast("update_winners", Winners)
     }
 
-    public randomAttack(payload) {
+    public randomAttack(payload: { gameId: string, indexPlayer: string }) {
         const { gameId, indexPlayer } = payload;
 
         const coords = gameService.getRandomCoords()
@@ -171,7 +174,7 @@ class GameController {
         this.attack(attackPayload)
     }
 
-    private _broadcast(type, data) {
+    private _broadcast(type: string, data: any) {
         wss.clients.forEach((client) => {
 
             const response = {
