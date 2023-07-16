@@ -1,13 +1,13 @@
-import { Ship, ShipPosition } from "../db/types";
-import { Games, Players, USERS_GAME_SHIPS, Winners } from "../db";
+import { Coord, Game, Ship, ShipPosition } from "../db/types";
+import { DB } from "../db";
 
 
 class GameService {
 
-    public attack(payload) {
-        const { currentPlayer, currentGame, x, y } = payload;
+    public attack(payload: { indexPlayer: string, currentGame: Game} & Coord) {
+        const { indexPlayer, currentGame, x, y } = payload;
 
-        const opponent = currentGame.players.find((player => player.id !== currentPlayer));
+        const opponent = currentGame.players.find((player => player.id !== indexPlayer));
 
         let positionIndex;
         let shipIndex;
@@ -40,11 +40,11 @@ class GameService {
         }
     }
 
-    public addShips(payload) {
+    public addShips(payload: { indexPlayer: string, gameId: string, ships: Ship[]}) {
         const { ships, gameId, indexPlayer } = payload;
         const currentGame = this.getCurrentGameById(gameId);
 
-        USERS_GAME_SHIPS.set(indexPlayer, ships);
+        DB.USERS_GAME_SHIPS.set(indexPlayer, ships);
 
         const allShipsPositions = this._transformShipsToShipsPositionsCoords(ships);
 
@@ -58,8 +58,8 @@ class GameService {
     }
 
     public updateWinnersTable(indexPlayer: string) {
-        const currentPlayer = Players.find(player => player.index === indexPlayer);
-        const winnerIndex = Winners.findIndex(winner => winner.name === currentPlayer?.name);
+        const currentPlayer = DB.users.find(user => user.index === indexPlayer);
+        const winnerIndex = DB.winners.findIndex(winner => winner.name === currentPlayer?.name);
         
         if (!currentPlayer?.name) throw new Error('Player not found')
 
@@ -69,7 +69,7 @@ class GameService {
             this._updateWinnerStat(winnerIndex);
         }
 
-        return Winners
+        return DB.winners
     }
 
     public getRandomCoords() {
@@ -81,9 +81,9 @@ class GameService {
         }
     }
 
-    public getCurrentGameById(gameId) {
-        const currentGameIndex = Games.findIndex(game => game.idGame === gameId);
-        return Games[currentGameIndex];
+    public getCurrentGameById(gameId: string) {
+        const currentGameIndex = DB.games.findIndex(game => game.idGame === gameId);
+        return DB.games[currentGameIndex];
     }
 
     private _transformShipsToShipsPositionsCoords(ships: Ship[]) {
@@ -118,14 +118,14 @@ class GameService {
     }
 
     private _createNewWinner(name: string) {
-        Winners.push({
+        DB.winners.push({
             name: name,
             wins: 1
         })
     }
 
     private _updateWinnerStat(index: number) {
-        Winners[index].wins += 1
+        DB.winners[index].wins += 1
     }
 
     private _getRandomCoord() {

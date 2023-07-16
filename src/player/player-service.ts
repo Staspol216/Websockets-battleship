@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { Players } from "../db";
+import { DB } from "../db";
 import { authData } from "./types";
 
 
@@ -7,12 +7,12 @@ import { authData } from "./types";
 class PlayerService {
     auth(authData: authData) {
 
-        const playerIndex = Players.findIndex((player) => player.name === authData.name);
+        const playerIndex = DB.users.findIndex((player) => player.name === authData.name);
 
         if (playerIndex === -1) {
-            const newPlayer = { index: randomUUID() , ...authData };
-            Players.push(newPlayer);
-            const { name, index } = newPlayer;
+            const newUser = { index: randomUUID() , ...authData };
+            DB.users.push(newUser);
+            const { name, index } = newUser;
             return {
                 name,
                 index,
@@ -21,15 +21,15 @@ class PlayerService {
             }
         } else {
 
-            if (authData.password === Players[playerIndex].password) {
-                const { password, ...responseData } = Players[playerIndex];
+            if (authData.password === DB.users[playerIndex].password) {
+                const { password, ...responseData } = DB.users[playerIndex];
                 return {
                     ...responseData,
                     error: false,
                     errorText: ''
                 };
             } else {
-                const { password, ...responseData } = Players[playerIndex];
+                const { password, ...responseData } = DB.users[playerIndex];
                 return {
                     ...responseData,
                     error: true,
@@ -41,7 +41,7 @@ class PlayerService {
     }
 
     getPlayerById(playerId: string) {
-        return Players.find(player => player.index === playerId);
+        return DB.users.find(player => player.index === playerId);
     }
 }
 

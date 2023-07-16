@@ -1,13 +1,11 @@
-import { Player, Room, Game, Winner } from "./types";
+import { DBType } from "./types";
 
-export const Players: Player[] = [];
 
-export const Rooms: Room[] = [];
-
-export const Games: Game[] = [];
-
-export const Winners: Winner[] = [];
-
-export const CLIENTS = new Map();
-
-export const USERS_GAME_SHIPS = new Map();
+export const DB: DBType = {
+    users: [],
+    rooms: [],
+    games: [],
+    winners: [],
+    CLIENTS: new Map(),
+    USERS_GAME_SHIPS: new Map()
+}

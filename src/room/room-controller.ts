@@ -1,18 +1,20 @@
 import { wss } from "../server/ws";
-import { CLIENTS } from "../db";
+import { DB } from "../db";
 import playerService from "../player/player-service";
 import RoomService from "./room-service";
 import WebSocket from 'ws';
 
 class RoomController {
-    public async create(ws) {
-        const playerRoomCreatorId = CLIENTS.get(ws);
+    public async create(ws: WebSocket) {
+        const playerRoomCreatorId = DB.CLIENTS.get(ws);
+        if (!playerRoomCreatorId) return
         const newRoom = RoomService.create(playerRoomCreatorId);
         return newRoom
     }
 
-    public async addPlayer(ws, payload) {
-        const playerId = CLIENTS.get(ws);
+    public async addPlayer(ws: WebSocket, payload) {
+        const playerId = DB.CLIENTS.get(ws);
+        if (!playerId) return
         const player = playerService.getPlayerById(playerId)
         const { indexRoom } = payload;
         // handle Error

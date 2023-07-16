@@ -1,6 +1,6 @@
-import { CLIENTS, Games, USERS_GAME_SHIPS, Winners } from "../db";
+import { DB } from "../db";
 import { randomUUID } from "crypto";
-import { Game, Room } from "../db/types";
+import { Coord, Game, Room, Ship } from "../db/types";
 import WebSocket from 'ws';
 import gameService from "./game-service";
 import { wss } from "../server/ws";
@@ -8,7 +8,6 @@ import { wss } from "../server/ws";
 class GameController {
 
     public async create(room: Room) {
-        console.log("Creating game from", room)
         const roomPlayersIds = room.roomUsers.map(user => user.index);
 
         const game: Game = {
@@ -18,7 +17,8 @@ class GameController {
         };
 
         wss.clients.forEach((client) => {
-            const idPlayer = CLIENTS.get(client);
+            const idPlayer = DB.CLIENTS.get(client);
+            if (!idPlayer) return
             if (!roomPlayersIds.includes(idPlayer)) return
 
             const response = {
@@ -36,36 +36,10 @@ class GameController {
             }
         });
 
-        Games.push(game);
+        DB.games.push(game);
     }
 
-    public async createGameWithBot(ws) {
-        const game: Game = {
-            idGame: randomUUID(),
-            players: [],
-            activePlayer: ''
-        };
-
-        const idPlayer = CLIENTS.get(ws);
-
-        const response = {
-            type: "create_game",
-            data: JSON.stringify({
-                idGame: game.idGame,
-                idPlayer
-            }),
-            id: 0
-        };
-        
-        const encodedResponse = JSON.stringify(response);
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(encodedResponse);
-        }
-
-        Games.push(game);
-    }
-
-    public addShips(payload) {
+    public addShips(payload: { indexPlayer: string, gameId: string, ships: Ship[]}) {
         const currentGame = gameService.addShips(payload);
 
         if (currentGame.players.length === 2) {
@@ -78,14 +52,14 @@ class GameController {
         const gamePlayersIds = game.players.map(player => player.id);
 
         wss.clients.forEach((client) => {
-            const playerId = CLIENTS.get(client);
-
+            const playerId = DB.CLIENTS.get(client);
+            if (!playerId) return
             if (!gamePlayersIds.includes(playerId)) return
 
             const response = {
                 type: "start_game",
                 data: JSON.stringify({
-                    ships: USERS_GAME_SHIPS.get(playerId),
+                    ships: DB.USERS_GAME_SHIPS.get(playerId),
                     currentPlayerIndex: playerId
                 }),
                 id: 0
@@ -106,28 +80,29 @@ class GameController {
         })
     }
 
-    public attack(payload) {
-        const { indexPlayer: currentPlayer, x, y, gameId } = payload;
+    public attack(payload: { indexPlayer: string, gameId: string} & Coord) {
+        const { indexPlayer, x, y, gameId } = payload;
 
         const currentGame = gameService.getCurrentGameById(gameId);
-        if (currentGame.activePlayer !== currentPlayer) return
-        const { status, opponent } = gameService.attack({ currentPlayer, currentGame, x, y });
+        if (currentGame.activePlayer !== indexPlayer) return
+        const { status, opponent } = gameService.attack({ indexPlayer, currentGame, x, y });
 
         this._broadcast("attack", {
             position: { x, y },
-            currentPlayer,
+            currentPlayer: indexPlayer,
             status,
         })
 
         if (opponent?.ships.length === 0) {
             const playersIds = currentGame.players.map(player => player.id);
-            gameService.updateWinnersTable(currentPlayer);
-            this.setGameFinish(currentPlayer, playersIds);
+            gameService.updateWinnersTable(indexPlayer);
+            this.setGameFinish(indexPlayer, playersIds);
             this.updateWinners();
             return
         }
 
-        const nextPlayer = status === "miss" ? opponent?.id : currentPlayer
+        if (!opponent) throw new Error("spmething went wrong")
+        const nextPlayer = status === "miss" ? opponent.id : indexPlayer
         currentGame.activePlayer = nextPlayer;
         this._broadcast("turn", {
             currentPlayer: nextPlayer
@@ -137,8 +112,8 @@ class GameController {
     public setGameFinish(winPlayerID: string, playersIds: string[]) {
 
         wss.clients.forEach((client) => {
-            const playerId = CLIENTS.get(client);
-
+            const playerId = DB.CLIENTS.get(client);
+            if (!playerId) return
             if (!playersIds.includes(playerId)) return
             
             const response = {
@@ -157,7 +132,7 @@ class GameController {
     }
 
     public updateWinners() {
-        this._broadcast("update_winners", Winners)
+        this._broadcast("update_winners", DB.winners)
     }
 
     public randomAttack(payload: { gameId: string, indexPlayer: string }) {

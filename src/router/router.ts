@@ -18,6 +18,7 @@ export const router = async (request, ws) => {
             break;
         case 'add_user_to_room': {
             const room = await roomController.addPlayer(ws, payload);
+            if (!room) throw new Error("something went wrong")
             if (room.roomUsers.length === 2) {
                 roomController.removeRoomById(room.roomId)
             }
@@ -34,10 +35,6 @@ export const router = async (request, ws) => {
         case 'randomAttack':
             await gameController.randomAttack(payload);
             break;
-        case 'single_play': {
-            await gameController.createGameWithBot(ws);
-            break;
-        }
         }
     } catch(e) {
         console.log(e);
