@@ -4,15 +4,13 @@
     "description": "Template for the WebSocket battleship task",
     "main": "./index.ts",
     "scripts": {
-        "start:dev": "cross-env MODE=development nodemon",
-        "start:prod": "cross-env MODE=production webpack && node ./dist/bundle.min.js"
+        "start": "cross-env nodemon"
     },
     "author": "Stas Polishchuk",
     "keywords": [],
     "license": "ISC",
     "devDependencies": {
         "@types/node": "^20.4.1",
-        "@types/webpack": "^5.28.1",
         "@types/ws": "^8.5.5",
         "@typescript-eslint/eslint-plugin": "^5.61.0",
         "@typescript-eslint/parser": "^5.61.0",
