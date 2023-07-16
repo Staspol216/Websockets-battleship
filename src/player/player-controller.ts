@@ -1,6 +1,7 @@
 import { authData } from "./types";
 import playerService from "./player-service";
-import { CLIENTS } from "../db";
+import { CLIENTS, Winners } from "../db";
+import { wss } from "../server/ws";
 
 class PlayerController {
 
@@ -20,10 +21,20 @@ class PlayerController {
         ws.send(encodedResponse);
     }
 
-    async updateWinners(ws) {
-        const players = await playerService.getAllWithWins();
-        ws.send(players)
+    async updateWinners() {
+        wss.clients.forEach((client) => {
 
+            const response = {
+                type: "update_winners",
+                data: JSON.stringify(Winners),
+                id: 0
+            };
+            const encodedResponse = JSON.stringify(response);
+
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(encodedResponse);
+            }
+        });
     }
 }
 

@@ -1,26 +1,30 @@
+import { wss } from "../server/ws";
 import { CLIENTS } from "../db";
 import playerService from "../player/player-service";
 import RoomService from "./room-service";
 import WebSocket from 'ws';
 
 class RoomController {
-    async create(ws) {
+    public async create(ws) {
         const playerRoomCreatorId = CLIENTS.get(ws);
-        await RoomService.create(playerRoomCreatorId);
+        const newRoom = RoomService.create(playerRoomCreatorId);
+        return newRoom
     }
 
-    async addPlayer(ws, payload) {
+    public async addPlayer(ws, payload) {
         const playerId = CLIENTS.get(ws);
-        const player = await playerService.getPlayerById(playerId)
+        const player = playerService.getPlayerById(playerId)
         const { indexRoom } = payload;
         // handle Error
-        if (!indexRoom || !player) return
+        if (!indexRoom || !player) throw new Error('something went wrong')
 
-        await RoomService.addPlayer(indexRoom, player);
+        const room = RoomService.addPlayer(indexRoom, player);
+
+        return room
     }
 
-    async updateRoom(wss) {
-        const rooms = await RoomService.getAll();
+    public async updateRoom() {
+        const rooms = RoomService.getAll();
 
         const response = {
             type: "update_room",
@@ -35,6 +39,10 @@ class RoomController {
             }
         });
 
+    }
+
+    public async removeRoomById(id: string) {
+        RoomService.removeById(id)
     }
 }
 

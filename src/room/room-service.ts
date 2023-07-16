@@ -4,12 +4,12 @@ import { randomUUID } from "crypto";
 
 
 class RoomService {
-    create(creatorId) {
+    public create(creatorId: string) {
 
         const PlayerCreatorData = Players.find((player) => player.index === creatorId);
 
         // handle error
-        if (!PlayerCreatorData) return
+        if (!PlayerCreatorData) throw new Error("Player not found")
 
         const { password, ...playerDataWithoutPassword } = PlayerCreatorData;
 
@@ -19,30 +19,33 @@ class RoomService {
         };
 
         Rooms.push(newRoom);
-        console.log(Rooms);
+
+        return newRoom
     }
 
-    addPlayer(indexRoom: string, player: Player) {
+    public addPlayer(indexRoom: string, player: Player) {
         const room = this.getById(indexRoom);
-        if (!room) return
-
-        room.roomUsers.push(player)
+        const usersIds = room?.roomUsers.map(user => user.index);
+        const isCreator = usersIds?.includes(player.index);
+        if (!room ) throw new Error("Room not found");
+        if (isCreator) throw new Error("Creator has been already added in room");
         
-        if (room.roomUsers.length === 2) {
-            this.removeById(room.roomId)
-        }
+        const { password, ...playerDataWithoutPassword } = player;
+        room.roomUsers.push(playerDataWithoutPassword)
+
+        return room
     }
 
-    removeById(id: string) {
+    public removeById(id: string) {
         const roomIndex = Rooms.findIndex(room => room.roomId === id)
         return Rooms.splice(roomIndex, 1)
     }
 
-    getById(id: string) {
+    public getById(id: string) {
         return Rooms.find(room => room.roomId === id)
     }
 
-    getAll() {
+    public getAll() {
         return Rooms
     }
 }

@@ -1,41 +1,46 @@
 import playerController from '../player/player-controller';
 import roomController from '../room/room-controller';
 import gameController from '../game/game-controller';
-import { wss } from '../http_server';
 
 export const router = async (request, ws) => {
     const { type, data } = JSON.parse(request);
-    let payload;
-    if (data) {
-        payload = JSON.parse(data)
+    const payload = data ? JSON.parse(data) : null;
+    try {
+        switch(type) {
+        case 'reg':
+            await playerController.auth(ws, payload);
+            await roomController.updateRoom();
+            await gameController.updateWinners();
+            break;
+        case 'create_room':
+            await roomController.create(ws);
+            await roomController.updateRoom();
+            break;
+        case 'add_user_to_room': {
+            const room = await roomController.addPlayer(ws, payload);
+            if (room.roomUsers.length === 2) {
+                roomController.removeRoomById(room.roomId)
+            }
+            await roomController.updateRoom();
+            await gameController.create(room);
+            break;
+        }
+        case 'add_ships':
+            await gameController.addShips(payload);
+            break;
+        case 'attack':
+            await gameController.attack(payload)
+            break;
+        case 'randomAttack':
+            await gameController.randomAttack(payload);
+            break;
+        case 'single_play': {
+            await gameController.createGameWithBot(ws);
+            break;
+        }
+        }
+    } catch(e) {
+        console.log(e);
     }
-    console.log(JSON.parse(request))
-    console.log(type);
-    switch(type) {
-    case 'reg':
-        await playerController.auth(ws, payload);
-        await roomController.updateRoom(wss);
-        break;
-    case 'update_winners':
-        await playerController.updateWinners(ws);
-        break;
-    case 'create_room':
-        await roomController.create(ws);
-        await roomController.updateRoom(wss);
-        break;
-    case 'add_user_to_room':
-        await roomController.addPlayer(ws, payload);
-        await roomController.updateRoom(wss);
-        await gameController.create(wss)
-        break;
-    case 'add_ships':
-        await gameController.addShips(wss, payload);
-        break;
-    case 'attack':
-        await gameController.attack(wss, ws, payload)
-        break;
-    case 'randomAttack':
-        await gameController.randomAttack(wss, ws, payload)
-        break;
-    }
+    
 }

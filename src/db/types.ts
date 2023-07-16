@@ -9,9 +9,15 @@ export interface Room {
     roomUsers: Omit<Player, "password">[]
 }
 
+export interface Winner {
+    name: string;
+    wins: number;
+}
+
 export interface ShipPosition {
     x: number,
     y: number,
+    damaged: boolean;
 }
 export interface Ship {
     position: ShipPosition,
@@ -28,5 +34,6 @@ interface GamePlayer {
 export interface Game {
     idGame: string; 
     players: GamePlayer[];
+    activePlayer: string;
 }
 

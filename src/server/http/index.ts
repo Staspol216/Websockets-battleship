@@ -1,8 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import {createServer} from 'http';
-import { WebSocketServer } from 'ws';
-import { router } from '../router/router';
 
 export const server = createServer(function (req, res) {
     const __dirname = path.resolve(path.dirname(''));
@@ -16,11 +14,4 @@ export const server = createServer(function (req, res) {
         res.writeHead(200);
         res.end(data);
     });
-});
-
-export const wss = new WebSocketServer({ port: 3000 });
-
-wss.on('connection', (ws) => {
-    ws.on('error', console.error);
-    ws.on('message', (req) => router(req, ws));
 });

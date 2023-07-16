@@ -43,10 +43,6 @@ class PlayerService {
     getPlayerById(playerId: string) {
         return Players.find(player => player.index === playerId);
     }
-
-    getAllWithWins() {
-        return 1
-    }
 }
 
 export default new PlayerService();
